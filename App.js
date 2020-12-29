@@ -1,114 +1,73 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React, { Component } from 'react';
+import { NativeModules, NativeEventEmitter, Text, Button, View, Switch } from 'react-native';
 
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
+const { SeapassReaderModule } = NativeModules;
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const DEFAULT_FOLIO_NUMBER = "9841000061609601"
+const DEFAULT_DEBARK_DATE = "20180517"
+const DEFAULT_SECONDARY_FOLIO = "26542751"
+const DEFAULT_LOYALTY_TIER_CODE = "L"
+const DEFAULT_SHIP_CODE = "OA"
+const DEFAULT_MUSTER_STATION_NUMBER = "C3"
+const DEFAULT_EMBARK_DATE = "20140503"
+const DEFAULT_FIRST_NAME = "Andres"
+const DEFAULT_LAST_NAME = "Smith"
+const DEFAULT_MIDDLE_NAME = "Anthony"
 
-const App: () => React$Node = () => {
+class App extends Component {  
+  
+constructor(props) {
+  super(props);
+  this.state = {
+    toggle: false,
+  }
+}
+
+componentDidMount() {
+  const eventEmitter = new NativeEventEmitter(NativeModules.SeapassReaderModule);
+  this.eventListener = eventEmitter.addListener('read', (event) => {
+     console.log(event)     
+  });
+
+  this.eventListener = eventEmitter.addListener('tagdetected', (event) => {
+     if (this.state.toggle == false) {
+      SeapassReaderModule.read()     
+     } else {
+      SeapassReaderModule.write(
+        DEFAULT_FOLIO_NUMBER,
+        DEFAULT_DEBARK_DATE,
+        DEFAULT_SECONDARY_FOLIO,
+        DEFAULT_LOYALTY_TIER_CODE,
+        DEFAULT_SHIP_CODE,
+        DEFAULT_MUSTER_STATION_NUMBER,
+        DEFAULT_EMBARK_DATE,
+        DEFAULT_FIRST_NAME,
+        DEFAULT_LAST_NAME,
+        DEFAULT_MIDDLE_NAME        
+      )
+     }
+ });
+}
+
+componentWillUnmount() {
+  this.eventListener.remove();
+}
+
+ render() {
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
-  );
-};
-
-const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-});
+    <View>
+      <Text>Seapass Card reader demo</Text>
+      <Text>Move the swith Left for reading, move it right for writing, then put the tag near the device and check the console</Text>
+      <Switch
+        trackColor={{ false: "#767577", true: "#81b0ff" }}
+        thumbColor="white"
+        ios_backgroundColor="#3e3e3e"
+        onValueChange={(value) => this.setState({toggle: value})}
+        value={this.state.toggle}
+      />
+    </View>    
+  )
+ } 
+}
 
 export default App;
